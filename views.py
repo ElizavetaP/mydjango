@@ -25,7 +25,7 @@ def index(request):
     data = cursor.fetchall()
     
     if data[0][0] < int(time.strftime("%d")) + 6:
-        response = urllib2.urlopen('http://api.openweathermap.org/data/2.5/forecast/daily?id=524901')
+        response = urllib2.urlopen('http://api.openweathermap.org/data/2.5/forecast/daily?id=524901&appid=bd82977b86bf27fb59a04b61b657fb6f')
         data = response.read()
         a = json.loads(data)
         i = 0
@@ -54,8 +54,26 @@ def index(request):
         h = rec[4]
         f = rec[6]
         mydata.append( "date  %(date)s, temperature  %(temperature)s, pressure  %(pressure)s, nebulosity  %(nebulosity)s, humidity  %(humidity)s, forecast  %(forecast)s"%{"date":d, "temperature":t, "pressure":pr, "nebulosity":n, "humidity":h, "forecast":f})
-    
-    return render_to_response('polls/index.html', {'mydata': mydata}) 
+
+    sql = """select date, temperature from prognoz where forecast=0 group by date"""
+    cursor.execute(sql)
+    data0 = cursor.fetchall()
+
+    er = [0]*6
+    for x in range(1,6):
+        sql = """select date, temperature from prognoz where forecast=%(x)s group by date"""%{"x":x}
+        cursor.execute(sql)
+        data = cursor.fetchall()
+        inac = 0
+        i = 0
+        for rec in data:
+            for rec0 in data0:
+                if rec[0] in rec0:
+                    i = i + 1
+                    inac = inac + abs(float(rec0[1]) - float(rec[1]))
+        if inac > 0:
+            er[x-1] = round(inac,2)/i
+    return render_to_response('polls/index.html', {'mydata': mydata,'er': er})
 
 def detail(request, poll_id):
     return HttpResponse("You're looking at poll %s." % poll_id)

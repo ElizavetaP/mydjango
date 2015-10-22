@@ -6,8 +6,9 @@ import json
 import ConfigParser
 import MySQLdb
 import time
-from datetime import datetime
+from datetime import datetime, timedelta, date, time as dt_time
 import sys
+import collections
 
 def index(request):
     config = ConfigParser.RawConfigParser()
@@ -72,8 +73,32 @@ def index(request):
                     i = i + 1
                     inac = inac + abs(float(rec0[1]) - float(rec[1]))
         if inac > 0:
-            er[x-1] = round(inac,2)/i
-    return render_to_response('polls/index.html', {'mydata': mydata,'er': er})
+            er[x-1] = round(inac/i,2)
+    L = [["empty","empty","empty","empty","empty","empty","empty"]for x in range(7)]
+    forcasts = [0,1,2,3,4,5,6]
+    now_date = datetime.today()
+    dates = [str(now_date.date()+timedelta(days=-6)),str(now_date.date()+timedelta(days=-5)),str(now_date.date()+timedelta(days=-4)),str(now_date.date()+timedelta(days=-3)),
+         str(now_date.date()+timedelta(days=-2)),str(now_date.date()+timedelta(days=-1)),str(now_date.date())]
+
+    for x in range(0,7):
+        sql = """select date, temperature, forecast from prognoz where date=DATE_sub(CURDATE(),Interval %(x)s DAY) group by forecast"""%{"x":6-x}
+        cursor.execute(sql)
+        data = cursor.fetchall()
+        if int(data[0][2]) == 0:
+            rec0 = data[0][1]
+            for rec in data:
+                k = int(rec[2])
+                L[k][x] = round(abs(float(rec0) - float(rec[1])),2)
+    i = 0
+    while i < 7:
+        L[i]=collections.OrderedDict(zip(dates,L[i]))
+        i = i + 1
+
+    N = (L[0],L[1],L[2],L[3],L[4],L[5],L[6])
+    e = collections.OrderedDict(zip(forcasts,N))
+    dates = (" ",str(now_date.date()+timedelta(days=-6)),str(now_date.date()+timedelta(days=-5)),str(now_date.date()+timedelta(days=-4)),str(now_date.date()+timedelta(days=-3)),
+         str(now_date.date()+timedelta(days=-2)),str(now_date.date()+timedelta(days=-1)),str(now_date.date()))
+    return render_to_response('polls/index.html', {'mydata': mydata,'er': er,'e':e,'dates':dates})
 
 def detail(request, poll_id):
     return HttpResponse("You're looking at poll %s." % poll_id)

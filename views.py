@@ -94,8 +94,7 @@ def index(request):
         L[i]=collections.OrderedDict(zip(dates,L[i]))
         i = i + 1
 
-    N = (L[0],L[1],L[2],L[3],L[4],L[5],L[6])
-    e = collections.OrderedDict(zip(forcasts,N))
+    e = collections.OrderedDict(zip(forcasts,L))
     dates = (" ",str(now_date.date()+timedelta(days=-6)),str(now_date.date()+timedelta(days=-5)),str(now_date.date()+timedelta(days=-4)),str(now_date.date()+timedelta(days=-3)),
          str(now_date.date()+timedelta(days=-2)),str(now_date.date()+timedelta(days=-1)),str(now_date.date()))
     return render_to_response('polls/index.html', {'mydata': mydata,'er': er,'e':e,'dates':dates})

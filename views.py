@@ -74,7 +74,7 @@ def index(request):
                     inac = inac + abs(float(rec0[1]) - float(rec[1]))
         if inac > 0:
             er[x-1] = round(inac/i,2)
-    L = [["empty","empty","empty","empty","empty","empty","empty"]for x in range(7)]
+    L = [[["empty"],["empty"],["empty"],["empty"],["empty"],["empty"],["empty"]]for x in range(7)]
     forcasts = [0,1,2,3,4,5,6]
     now_date = datetime.today()
     dates = [str(now_date.date()+timedelta(days=-6)),str(now_date.date()+timedelta(days=-5)),str(now_date.date()+timedelta(days=-4)),str(now_date.date()+timedelta(days=-3)),
@@ -88,7 +88,7 @@ def index(request):
             rec0 = data[0][1]
             for rec in data:
                 k = int(rec[2])
-                L[k][x] = round(abs(float(rec0) - float(rec[1])),2)
+                L[k][x] = ('''%(temp)sC'''%{'temp':round(float(rec[1]),2)}, round(float(rec[1])-float(rec0),2))
     i = 0
     while i < 7:
         L[i]=collections.OrderedDict(zip(dates,L[i]))
